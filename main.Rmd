@@ -1,0 +1,849 @@
+---
+title: "TP Times series - Mardoché Clabessi"
+output: html_notebook
+---
+
+```{r}
+# Charger les bibliothèques nécessaires
+library(stats)
+```
+
+# $\textbf{Contextualisation}$
+
+Les objectifs du TP ont été :
+
+1.  L'appréhension de la différence entre les probabilités et la statistique dans l’étude des séries chronologiques.
+2.  L'analyse des comportements des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus AR, MA et ARMA.
+
+# $\textbf{1. Introduction au logiciel R}$
+
+Cette section a été dédiée à l’acquisition de notions introductives sur le langage R et son utilisation. Elle a couverte notamment les structures de données en R, l'importation de données depuis un fichier externe, l’utilisation des boucles, la création de graphiques, ainsi que l’écriture de fonctions en R.
+
+# $\textbf{2. Analyse de séries temporelles avec R}$
+
+$\textbf{2.1 Processus non-stationnaire}$
+
+Le but de l’exercice est de simuler le processus
+
+$$ X_t = X_{t-1} + \varepsilon_t, \quad t \in \mathbb{N}, \quad X_0 = 0. $$
+
+Le processus $\{\varepsilon_t, t \in \mathbb{N}\}$ est un bruit blanc gaussien de variance $\sigma^2 = 1$.
+
+#### 1. Simulons sur R le processus $X_t$ pour $t = 1, \ldots, n$ avec $n = 200$.
+
+```{r}
+# Paramètres
+n <- 200
+sigma <- 1
+
+# Initialisation du processus
+Xt <- numeric(n)
+Xt[1] <- 0  # X0 = 0
+
+# Simulation du processus
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = sigma)
+
+for (t in 2:n) {
+  Xt[t] <- Xt[t - 1] + epsilon[t]
+}
+```
+
+#### 2. Traçons le processus $X_t$ en fonction du temps.
+
+```{r}
+# Tracé du processus en fonction du temps
+plot(Xt, type = "l", col = "blue", xlab = "Temps (t)", ylab = "Processus (X[t])", main = "Simulation du processus X_t en fonction du temps")
+
+```
+
+##### Explication du comportement non-stationnaire
+
+On remarque sur le graphique que la courbe reste beaucoup en dessous ou au dessous de $X_0$ et souvent le temps de retour en $X_0$ est bien grand, ce qui suggère que la moyenne de $X_t$ n'est pas constante avec le temps; ce qui est un comportement non stationnaire.
+
+#### 3. Traçons la fonction d’autocorrélation
+
+```{r}
+# Tracé de la fonction d'autocorrélation
+acf(Xt, main = "Fonction d'autocorrélation du processus Xt")
+```
+
+##### Constat sur le comportement de la fonction d'autocorrélation
+
+La fonction d'autocorrélation montre une décroissance lente, indiquant que les valeurs de $X_t$ sont fortement corrélées avec leurs valeurs passées, ce qui est typique d'un processus non-stationnaire comme une marche aléatoire.
+
+# $\textbf{2.2 Processus MA(q)}$
+
+Nous souhaitons illustrer le comportement des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus MA(q).
+
+Nous allons d’abord simuler un processus MA(1) :
+
+$$
+X_t = \varepsilon_t + \theta \varepsilon_{t-1}, \quad t \in \mathbb{N^*}
+$$
+
+#### 1) On choisit $\theta = 0.9$.
+
+##### Inversibilité du processus
+
+Le polynôme caractéristique du processus $MA(1)$ est donné par :
+
+$$
+1 + \theta z = 0
+$$
+
+La racine de cette équation est :
+
+$$
+z = -\frac{1}{\theta}
+$$
+
+Pour que le processus soit inversible, il faut que la valeur absolue de cette racine soit supérieure à 1, c'est-à-dire :
+
+$$
+\left| -\frac{1}{\theta} \right| > 1
+$$
+
+Cela revient à :
+
+$$
+|\theta| < 1
+$$
+
+Dans notre cas, avec $\theta = 0.9$ :
+
+$$
+|\theta| = 0.9 < 1
+$$
+
+Ainsi, le processus MA(1) avec $\theta = 0.9$ **est inversible**.
+
+##### Simuler le processus $X_t$ pour $t = 1, \ldots, n$, avec $n = 1000$.
+
+```{r}
+# Paramètres
+theta <- 0.9  # Coefficient MA(1)
+n <- 1000     # Nombre d'observations
+
+# Simuler un processus MA(1)
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = 1)  # Erreurs blanches
+
+# Initialiser le vecteur Xt
+Xt <- numeric(n)
+# Boucle pour simuler le processus MA(1)
+for (t in 1:n) {
+  if (t == 1) {
+    Xt[t] <- epsilon[t]  # Pour t = 1, pas d'ε_{t-1}
+  } else {
+    Xt[t] <- epsilon[t] + theta * epsilon[t - 1]  # Ajout de ε_t et θ * ε_{t-1}
+  }
+}
+
+# Tracer le processus simulé
+ts.plot(Xt, main = "Processus MA(1)", ylab = expression(X[t]), xlab = "Temps(t)", col='black', type='l')
+
+```
+
+##### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle.
+
+```{r}
+# Tracer la fonction d'autocorrélation (ACF)
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+
+# Tracer la fonction d'autocorrélation partielle (PACF)
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+
+```
+
+##### Comportements observés :
+
+-   **ACF** : L'ACF présente un pic au lag 1 et montre une décroissance rapide après le premier lag. Le premier lag a une corrélation positive significative (environ $\ 0.9$), et les lags sont proches de zéro.
+
+-   **PACF** : La PACF montrant une corrélation significative pour le premier lag et des corrélations positives mais non significatives qui décroissent vers 0 à partir du lag 2.
+
+##### Comparaison avec le comportement théorique :
+
+-   **ACF théorique** : Pour un MA(1) avec $\theta = 0.9$, on s'attend à ce que l'ACF soit significativement positive au lag 1 (environ 0.9) et proche de zéro pour les autres lags. Cependant, le comportement non nul mais proche de 0 à partir du lag 2 de l'ACF peut s'expliquer par l'utilisation de l'estimateur empirique pour faire le calcul par R.
+
+-   **PACF théorique** : La PACF devrait montrer un comportement similaire au ACF, avec un seul lag significatif. Toutefois, l'utilisation de l'estimateur empirique pourrait expliquer le fait qu'on observe des valeurs non nulles et non significatives après le lag 1.
+
+#### 2) Analyse du processus MA(1) avec $\theta = -0.9$
+
+##### Inversibilité
+
+D'après la démonstration faite en question 1), le processus MA(1) est inversible si le paramètre $\theta$ est tel que $|\theta| < 1$. Dans ce cas, comme $\theta = -0.9$, nous avons $|-0.9| = 0.9 < 1$. Par conséquent, le processus est inversible.
+
+##### Simulation du processus MA(1) avec $\theta = -0.9$
+
+```{r}
+# Paramètres
+theta <- -0.9  # Coefficient MA(1)
+n <- 1000      # Nombre d'observations
+
+# Simuler un processus MA(1)
+set.seed(1)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = 1)  # Erreurs blanches
+
+# Initialiser le vecteur Xt
+Xt <- numeric(n)
+
+# Boucle pour simuler le processus MA(1)
+for (t in 1:n) {
+  if (t == 1) {
+    Xt[t] <- epsilon[t]  # Pour t = 1, pas d'ε_{t-1}
+  } else {
+    Xt[t] <- epsilon[t] + theta * epsilon[t - 1]  # Ajout de ε_t et θ * ε_{t-1}
+  }
+}
+```
+
+##### Traçons le processus $X_t$ en fonction du temps
+
+```{r}
+# Tracer le processus simulé
+ts.plot(Xt, main = "Processus MA(1) avec θ = -0.9", ylab = expression(X[t]), xlab = "Temps")
+```
+
+#### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle.
+
+```{r}
+# Tracer la fonction d'autocorrélation (ACF)
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+
+# Tracer la fonction d'autocorrélation partielle (PACF)
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements observés
+
+-   **ACF** : L'ACF montre une corrélation significative au lag 1, avec une valeur significative égale à la valeur absolue de $\theta = -0.9$. Les lags suivants sont proches de zéro.
+
+-   **PACF** : La PACF coupe après le premier lag, montrant une corrélation significative seulement pour le premier lag, qui est négative. Les autres lags décroissent vers zero.
+
+##### Comparaison avec le comportement théorique
+
+-   **ACF théorique** : Pour un MA(1) avec $\theta = -0.9$, on s'attend à ce que l'ACF soit significativement positive au lag 1 (environ 0.9) et proche de zéro pour les autres lags. Cependant, le comportement non nul mais proche de 0 à partir du lag 2 de l'ACF peut s'expliquer par l'utilisation de l'estimateur empirique pour faire le calcul par R.
+
+-   **PACF théorique** : La PACF devrait montrer un comportement similaire au ACF, avec un seul lag significatif. Toutefois, l'utilisation de l'estimateur empirique pourrait expliquer le fait qu'on observe des valeurs non nulles et non significatives après le lag 1.
+
+#### Simulation d'un processus MA(2)
+
+Nous allons maintenant simuler un processus MA(2) défini par :
+
+$$
+X_t = \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2}, \quad t \in \mathbb{N^*}
+$$
+
+#### 3) Choix des paramètres
+
+Nous choisissons $\theta_1 = 0.3$ et $\theta_2 = -0.4$.
+
+### Inversibilité
+
+Pour qu'un processus MA(2) soit inversible, nous devons examiner les racines du polynôme caractéristique associé, qui est :
+
+$$
+1 + \theta_1 z + \theta_2 z^2 = 0
+$$
+
+Un processus MA(2) est inversible si les racines de ce polynôme sont à l'extérieur du cercle unité dans le plan complexe, c’est-à-dire si leurs modules sont supérieurs à 1.
+
+Avec $\theta_1 = 0.3$ et $\theta_2 = -0.4$, le polynôme caractéristique devient :
+
+$$
+1 + 0.3z - 0.4z^2 = 0
+$$
+
+En résolvant cette équation quadratique, nous trouvons les racines suivantes :
+
+$$
+z = \frac{-0.3 \pm \sqrt{(0.3)^2 + 4 \times 0.4}}{2 \times (-0.4)}
+$$
+
+Les valeurs calculées pour $z$ (z=-1.25 et z=5.375) montrent que leurs modules sont en effet supérieurs à 1, confirmant que les racines se trouvent à l'extérieur du cercle unité. Par conséquent, le processus MA(2) avec $\theta_1 = 0.3$ et $\theta_2 = -0.4$ est bien inversible.
+
+##### Simulation du processus MA(2) avec $(\theta_1 = 0.3) ~~ et~~ (\theta_2 = -0.4)$
+
+```{r}
+# Paramètres
+theta1 <- 0.3  # Coefficient MA(1)
+theta2 <- -0.4  # Coefficient MA(2)
+n <- 1000       # Nombre d'observations
+
+# Simuler un processus MA(2)
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = 1)  # Erreurs blanches
+
+# Initialiser le vecteur Xt
+Xt <- numeric(n)
+
+# Boucle pour simuler le processus MA(2)
+for (t in 1:n) {
+  if (t == 1) {
+    Xt[t] <- epsilon[t]  # Pour t = 1, pas de ε_{t-1} ni ε_{t-2}
+  } else if (t == 2) {
+    Xt[t] <- epsilon[t] + theta1 * epsilon[t - 1]  # Pour t = 2, pas de ε_{t-2}
+  } else {
+    Xt[t] <- epsilon[t] + theta1 * epsilon[t - 1] + theta2 * epsilon[t - 2]  # MA(2) complet
+  }
+}
+```
+
+##### Traçons le processus $X_t$ en fonction du temps
+
+```{r}
+# Tracer le processus simulé
+ts.plot(Xt, main = "Processus MA(2) avec θ1 = 0.3 et θ2 = -0.4", ylab = expression(X[t]), xlab = "Temps")
+```
+
+#### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle.
+
+```{r}
+# Tracer la fonction d'autocorrélation (ACF)
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+
+# Tracer la fonction d'autocorrélation partielle (PACF)
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements observés
+
+-   **ACF** : L'ACF devrait montre des corrélations significatives pour les lags 1 et 2, correspondant aux valeurs de $\theta_1 = 0.3$ et $\theta_2 = -0.4$. Les lags suivants sont très proches de zéro sans être pour autant nuls.
+
+-   **PACF** : La PACF coupe après le second lag, montrant une corrélation significative pour les deux premiers lags.
+
+##### Comparaison avec le comportement théorique
+
+-   **ACF théorique** : Pour un MA(2) avec $\theta_1 = 0.3$ et $\theta_2 = -0.4$, l'ACF devrait montrer des valeurs significatives aux lags 1 et 2, avec des amplitudes proches de celles de $\theta_1$ et $\theta_2$. Ainsi, on peut dire que le comportement théorique est respecté. Les valeurs non nulles des autres lags s'expliquent par l'utilisation par R de l'estimateur empirique.
+
+-   **PACF théorique** : La PACF devrait confirmer ce comportement, avec des valeurs significatives aux lags 1 et 2, puis une coupure pour les lags suivants. Les légères discordances s'expliquent par l'estimateur empirique.
+
+# $\textbf{2.3 Processus AR(p)}$
+
+Nous souhaitons illustrer le comportement des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus AR(p).
+
+#### Processus AR(1)
+
+Un processus AR(1) est défini par l'équation suivante :
+
+$$
+X_t = \phi X_{t-1} + \varepsilon_t, \quad t \in \mathbb{N^*}
+$$
+
+#### 4) Choix des paramètres
+
+Nous choisissons $\phi = 0.7$.
+
+##### Causalité
+
+Le processus AR(1) est causal si la valeur absolue de $\phi$ est inférieure à 1, ce qui garantit que l'effet des valeurs passées de $X_t$ diminue exponentiellement dans le temps. Dans notre cas, avec $\phi = 0.7$, la condition de causalité est respectée, ce qui signifie que le processus est causal et stationnaire.
+
+### Simulations et Tracés
+
+```{r}
+
+# Paramètres
+phi <- 0.7  # Coefficient AR(1)
+n <- 1000   # Nombre d'observations
+
+# Simuler un processus AR(1)
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = 1)  # Bruit blanc
+Xt <- numeric(n)  # Initialisation du processus
+
+# Boucle pour simuler le processus AR(1)
+Xt[1] <- epsilon[1]  # Condition initiale
+for (t in 2:n) {
+  Xt[t] <- phi * Xt[t - 1] + epsilon[t]
+}
+
+# Tracer le processus simulé
+ts.plot(Xt, main = "Processus AR(1) avec φ = 0.7", ylab = expression(X[t]), xlab = "Temps")
+
+# Tracer la fonction d'autocorrélation (ACF)
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+
+# Tracer la fonction d'autocorrélation partielle (PACF)
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements observés
+
+-   **ACF** : L'ACF montre une décroissance forte des valeurs d'autocorrélation avec l'augmentation des lags.
+
+-   **PACF** : La PACF coupe après le premier lag, indiquant une corrélation directe seulement entre $X_t$ et $X_{t-1}$.
+
+##### Comparaison avec le comportement théorique
+
+-   **ACF théorique** : Dans le cas d'un AR(1) avec $\phi = 0.7$, nous nous attendons à ce que l'ACF décroisse exponentiellement à mesure que le lag augmente, conformément au modèle. Le comportement théorique est donc vérifié.
+
+-   **PACF théorique** : La PACF devrait montrer un seul pic significatif au premier lag, suivi de valeurs nulles, en raison de la nature d'un processus AR(1). Le comportement théorique est donc vérifié. Toutefois les valeurs suivantes proches de zéro mais non nulles s'expliquent par la représentation par l'estimateur empirique du PACF.
+
+#### 5) Nous choisissons $\phi = -0.7$.
+
+##### Causalité
+
+Etant donné que le processus AR(1) est causal si la valeur absolue de $\phi$ est inférieure à 1, ce qui garantit que l'effet des valeurs passées de $X_t$ diminue exponentiellement dans le temps. Dans notre cas, avec $\phi = -0.7$, la condition de causalité est respectée, ce qui signifie que le processus est causal et stationnaire.
+
+### Simulations et Tracés
+
+```{r}
+
+# Paramètres
+phi <- -0.7  # Coefficient AR(1)
+n <- 1000   # Nombre d'observations
+
+# Simuler un processus AR(1)
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n, mean = 0, sd = 1)  # Bruit blanc
+Xt <- numeric(n)  # Initialisation du processus
+
+# Boucle pour simuler le processus AR(1)
+Xt[1] <- epsilon[1]  # Condition initiale
+for (t in 2:n) {
+  Xt[t] <- phi * Xt[t - 1] + epsilon[t]
+}
+
+# Tracer le processus simulé
+ts.plot(Xt, main = "Processus AR(1) avec φ = -0.7", ylab = expression(X[t]), xlab = "Temps")
+
+# Tracer la fonction d'autocorrélation (ACF)
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+
+# Tracer la fonction d'autocorrélation partielle (PACF)
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements observés
+
+-   **ACF** : L'ACF montre une décroissance forte des valeurs d'autocorrélation avec l'augmentation des lags.
+
+-   **PACF** : La PACF coupe après le premier lag, indiquant une corrélation directe seulement entre $X_t$ et $X_{t-1}$.
+
+##### Comparaison avec le comportement théorique
+
+-   **ACF théorique** : Dans le cas d'un AR(1) avec $\phi = -0.7$, nous nous attendons à ce que l'ACF décroisse exponentiellement à mesure que le lag augmente, conformément au modèle. Le comportement théorique est donc vérifié.
+
+-   **PACF théorique** : La PACF devrait montrer un seul pic significatif au premier lag, suivi de valeurs nulles, en raison de la nature d'un processus AR(1). Le comportement théorique est donc vérifié. Toutefois les valeurs suivantes proches de zéro mais non nulles s'expliquent par la représentation par l'estimateur empirique du PACF.
+
+#### 6) Nous choisissons $\phi = 0.99$.
+
+Dans cette question, nous analysons la stationnarité et la causalité d'un processus auto-régressif d'ordre 1 (AR(1)) avec $\phi = 0.99$, et nous observons ses caractéristiques pour $n = 200$ puis $n = 1000$.
+
+#### Stationnarité et causalité
+
+##### Stationnarité
+
+Un processus AR(1) est stationnaire si $|\phi| < 1$. Avec $\phi = 0.99$, cette condition est respectée, ce qui signifie que le processus est stationnaire. Cependant, bien que le processus soit mathématiquement stationnaire, un coefficient $\phi$ proche de 1 implique une décroissance très lente de l'effet des valeurs passées, ce qui rend visuellement la série proche d'un processus non stationnaire.
+
+##### Causalité
+
+Pour la causalité, la condition est également $|\phi| < 1$. Avec $\phi = 0.99$, le processus est causal, car il est possible d’exprimer $X_t$ comme une somme pondérée des valeurs passées du bruit blanc $\varepsilon_t$ (effet décroissant très lentement en raison de $\phi$ proche de 1).
+
+##### Simulation et visualisation
+
+Nous allons simuler le processus avec $n = 200$ et $n = 1000$, puis observer l'évolution du processus dans le temps, ainsi que les fonctions d'autocorrélation (ACF) et d'autocorrélation partielle (PACF).
+
+```{r}
+# Paramètres
+phi <- 0.99  # Coefficient AR(1)
+n1 <- 200    # Nombre d'observations pour la première simulation
+n2 <- 1000   # Nombre d'observations pour la deuxième simulation
+
+# Fonction pour simuler le processus AR(1) et tracer les résultats
+simulate_ar1 <- function(n, phi) {
+  set.seed(123)  # Pour la reproductibilité
+  epsilon <- rnorm(n, mean = 0, sd = 1)  # Bruit blanc
+  Xt <- numeric(n)  # Initialisation du processus
+  
+  # Boucle pour simuler le processus AR(1)
+  Xt[1] <- epsilon[1]  # Condition initiale
+  for (t in 2:n) {
+    Xt[t] <- phi * Xt[t - 1] + epsilon[t]
+  }
+  
+  # Tracer le processus simulé
+  ts.plot(Xt, main = paste("Processus AR(1) avec φ =", phi, ", n =", n), 
+          ylab = expression(X[t]), xlab = "Temps")
+  
+  # Tracer la fonction d'autocorrélation (ACF)
+  acf(Xt, main = paste("Fonction d'Autocorrélation (ACF) avec n =", n))
+  
+  # Tracer la fonction d'autocorrélation partielle (PACF)
+  pacf(Xt, main = paste("Fonction d'Autocorrélation Partielle (PACF) avec n =", n))
+}
+
+# Simulation avec n = 200
+simulate_ar1(n1, phi)
+
+# Simulation avec n = 1000
+simulate_ar1(n2, phi)
+```
+
+##### Observations
+
+1.  **Stationnarité visuelle** : Bien que le processus soit mathématiquement stationnaire, le fait que $\phi = 0.99$ rend l’effet des valeurs passées très persistant. Cela donne une impression de "mémorisation" de long terme, ce qui peut visuellement ressembler à une série non stationnaire. Cette persistance est d'autant plus apparente avec $n = 1000$, où les variations lentes donnent l'impression que le processus pourrait être une marche aléatoire.
+
+2.  **ACF** : L'ACF décroît très lentement de manière exponentielle. Nous observons une autocorrélation significative sur de nombreux lags, ce qui traduit cette persistance des valeurs passées. Ce comportement est conforme au modèle théorique pour un processus AR(1) avec un coefficient proche de 1.
+
+3.  **PACF** : La PACF montre un pic important au premier lag, suivi de valeurs proches de zéro pour les lags suivants. Ce comportement est typique d'un processus AR(1), où seule la première autocorrélation partielle est significative.
+
+#### Processus AR(2)
+
+Un processus AR(2) est défini par l'équation suivante :
+
+$$
+X_t = \phi_1 X_{t-1} + \phi_2 X_{t-2} + \varepsilon_t, \quad t \in \mathbb{N^*}
+$$
+#### 7-) Avec \(\phi_1 = 1.2\) et \(\phi_2 = -0.35\)
+
+Nous allons examiner la causalité de ce processus et simuler le processus pour analyser son comportement.
+
+##### Vérification de la causalité
+Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique \(1 - \phi_1 z - \phi_2 z^2 = 0\) doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
+
+##### Cherchons numériquement les racines avec R
+
+```{r}
+# Paramètres du processus AR(2)
+phi1 <- 1.2
+phi2 <- -0.35
+
+# Calcul des racines de l'équation caractéristique
+roots <- polyroot(c(1, -phi1, -phi2))
+
+# Affichage des racines et de leurs modules
+cat("Racines :", roots, "\n")
+cat("Modules des racines :", Mod(roots), "\n")
+```
+
+Les modules des racines sont tous supérieurs à 1, alors le processus est causal.
+
+##### Simulation du processus et tracés
+
+On simule le processus pour \(t = 1, \ldots, n\) avec \(n = 1000\), puis on trace les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+
+```{r}
+set.seed(123)  # Pour la reproductibilité
+
+# Paramètres et simulation du processus AR(2)
+n <- 1000
+epsilon <- rnorm(n)  # Bruit blanc
+Xt <- numeric(n)
+
+# Initialisation des deux premiers termes
+Xt[1] <- epsilon[1]
+Xt[2] <- phi1 * Xt[1] + epsilon[2]
+
+# Boucle pour générer la série
+for (t in 3:n) {
+  Xt[t] <- phi1 * Xt[t - 1] + phi2 * Xt[t - 2] + epsilon[t]
+}
+
+# Tracé de la série simulée
+plot(Xt, type = "l", main = "Processus AR(2) simulé", xlab = "Temps", ylab = expression(X[t]))
+
+# Tracé des fonctions d’autocorrélation et d’autocorrélation partielle
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements Observés
+
+1. **ACF** : L'ACF montre une décroissance progressive et oscillante. 
+2. **PACF** : La PACF montre des valeurs significatives pour les deux premiers lags et tend vers zéro ensuite, ce qui est typique pour un processus AR(2).
+
+##### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
+
+En observant la fonction d’autocorrélation, nous vérifions si elle suit bien le comportement théorique attendu, avec une décroissance qui peut être rapide ou oscillante. Le code ci-dessous permet de calculer la fonction d’autocovariance et de comparer avec la théorie.
+
+```{r}
+# Fonction d’autocovariance empirique
+gamma_hat <- acf(Xt, type = "covariance", plot = TRUE)$acf
+
+# Affichage de l’autocovariance et de l’autocorrélation empiriques
+cat("Fonction d'autocovariance empirique (jusqu'au lag 10) :", gamma_hat[1:10], "\n")
+acf(Xt, main = "Fonction d'autocorrélation empirique")
+```
+
+En comparant avec les résultats théoriques du cours, on peut conclure si l’autocorrélation suit bien les caractéristiques d’un processus AR(2) causal.
+
+#### 8-) Avec \(\phi_1 = 0.5\) et \(\phi_2 = 0.24\)
+
+Nous allons examiner la causalité de ce processus et simuler le processus pour analyser son comportement.
+
+##### Vérification de la causalité
+Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique \(1 - \phi_1 z - \phi_2 z^2 = 0\) doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
+
+##### Cherchons numériquement les racines avec R
+
+```{r}
+# Paramètres du processus AR(2)
+phi1 <- 0.5
+phi2 <- 0.24
+
+# Calcul des racines de l'équation caractéristique
+roots <- polyroot(c(1, -phi1, -phi2))
+
+# Affichage des racines et de leurs modules
+cat("Racines :", roots, "\n")
+cat("Modules des racines :", Mod(roots), "\n")
+```
+Les modules des racines sont tous supérieurs à 1, alors le processus est causal.
+
+##### Simulation du processus et tracés
+
+Nous simulons le processus pour \(t = 1, \ldots, n\) avec \(n = 1000\), puis nous traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+
+```{r}
+set.seed(123)  # Pour la reproductibilité
+
+# Paramètres et simulation du processus AR(2)
+n <- 1000
+epsilon <- rnorm(n)  # Bruit blanc
+Xt <- numeric(n)
+
+# Initialisation des deux premiers termes
+Xt[1] <- epsilon[1]
+Xt[2] <- phi1 * Xt[1] + epsilon[2]
+
+# Boucle pour générer la série
+for (t in 3:n) {
+  Xt[t] <- phi1 * Xt[t - 1] + phi2 * Xt[t - 2] + epsilon[t]
+}
+
+# Tracé de la série simulée
+plot(Xt, type = "l", main = "Processus AR(2) simulé", xlab = "Temps", ylab = expression(X[t]))
+
+# Tracé des fonctions d'autocorrélation et d'autocorrélation partielle
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+
+```
+
+##### Comportements Observés
+
+-**ACF** : L'ACF montre une décroissance progressive.
+
+-**PACF** : La PACF montre des valeurs significatives pour les deux premiers lags, ce qui est caractéristique d'un processus AR(2), puis tend vers zéro.
+
+#### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
+
+Nous calculons ensuite la fonction d'autocovariance empirique et comparons son comportement avec les valeurs théoriques attendues pour un processus AR(2).
+
+```{r}
+# Fonction d'autocovariance empirique
+gamma_hat <- acf(Xt, type = "covariance", plot = T)$acf
+
+# Affichage de l'autocovariance et de l'autocorrélation empiriques
+cat("Fonction d'autocovariance empirique (jusqu'au lag 10) :", gamma_hat[1:10], "\n")
+acf(Xt, main = "Fonction d'autocorrélation empirique")
+```
+
+En comparant avec les résultats théoriques, nous vérifions si l'autocorrélation suit bien le comportement attendu pour un processus AR(2) causal.
+
+# $\textbf{2.4 Processus ARMA(p,q)}$
+
+Nous souhaitons illustrer le comportement des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus ARMA(p).  
+Nous allons maintenant simuler un processus ARMA(1,1) :  
+$$ X_t = \phi X_{t-1} + \varepsilon_t + \theta \varepsilon_{t-2}, \; t \in \mathbb{N^*}$$
+
+
+#### 9) Avec \(\phi = -0.5\) et \(\theta = 0.25\)
+
+Pour ce processus ARMA(1,1), nous allons vérifier sa causalité et son inversibilité, simuler la série temporelle, puis analyser ses propriétés.
+
+##### Vérification de la causalité et de l’inversibilité
+- **Causalité** : Le processus ARMA(1,1) est causal si la valeur absolue de \(\phi\) est inférieure à 1, ce qui est le cas ici (\(|\phi| = 0.5 < 1\)). Ainsi, ce processus est causal.
+- **Inversibilité** : Le processus ARMA(1,1) est inversible si la valeur absolue de \(\theta\) est inférieure à 1, ce qui est également le cas ici (\(|\theta| = 0.25 < 1\)). Donc, ce processus est aussi inversible.
+
+##### Simulation du Processus ARMA(1,1)
+
+Nous simulons le processus ARMA(1,1) pour \(t = 1, \ldots, n\) avec \(n = 1000\), et traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+
+```{r}
+set.seed(123)  # Pour la reproductibilité
+
+# Paramètres du processus ARMA(1,1)
+phi <- -0.5
+theta <- 0.25
+n <- 1000
+
+# Génération du bruit blanc
+epsilon <- rnorm(n)
+
+# Initialisation de la série
+Xt <- numeric(n)
+
+# Boucle pour générer le processus ARMA(1,1)
+Xt[1] <- epsilon[1]
+for (t in 2:n) {
+  Xt[t] <- phi * Xt[t - 1] + epsilon[t] + theta * ifelse(t > 2, epsilon[t - 1], 0)
+}
+
+# Tracé de la série simulée
+plot(Xt, type = "l", main = "Processus ARMA(1,1) simulé", xlab = "Temps", ylab = expression(X[t]))
+
+# Tracé des fonctions d’autocorrélation et d’autocorrélation partielle
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+##### Comportements Observés
+
+- **ACF** : L'ACF montre un pic au premier lag puis une décroissance progressive sur les autres tendant vers 0. Seule la valeur au premier lag est significative.
+
+- **PACF** : La PACF montre une coupure après le premier lag. Seul le lag 1 présente une corrélation significative.
+
+##### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
+
+Pour évaluer l'autocovariance empirique et confirmer son comportement, nous calculons également l'autocovariance jusqu'à un certain lag.
+
+```{r}
+# Fonction d'autocovariance empirique
+gamma_hat <- acf(Xt, type = "covariance", plot = T)$acf
+
+# Affichage de l'autocovariance empirique (jusqu'au lag 10)
+cat("Fonction d'autocovariance empirique (jusqu'au lag 10) :", gamma_hat[1:10], "\n")
+acf(Xt, main = "Fonction d'autocorrélation empirique")
+```
+
+L'observation de la fonction d’autocorrélation pour cette simulation correspond au comportement théorique d'un processus ARMA(1,1) causal et inversible, avec un déclin modéré influencé par les valeurs de \(\phi\) et \(\theta\).
+
+
+
+#### Processus ARMA(2,1)
+Nous allons maintenant simuler un processus ARMA(2,1) :  
+$$ X_t = \phi_1 X_{t-1} + \phi_2 X_{t-2} + \varepsilon_t + \theta \varepsilon_{t-1}, \; t \in \mathbb{N} $$
+
+#### 10) On choisit \( \phi_1 = -0.5 \), \( \phi_2 = 0.4 \) et \( \theta = 0.25 \).  
+
+##### Vérification de la causalité et de l’inversibilité
+- **Causalité** : Un processus ARMA est causal si les racines du polynôme caractéristique associé au processus AR(p) sont toutes à l'extérieur du cercle unité dans le plan complexe. Pour le processus ARMA(2,1) donné, le polynôme est :
+   \[
+   1 - \phi_1 z - \phi_2 z^2 = 0
+   \]
+   
+##### Cherchons numériquement les racines avec R
+
+```{r}
+# Paramètres du processus
+phi1 <- -0.5
+phi2 <- 0.4
+
+# Calcul des racines de l'équation caractéristique
+roots <- polyroot(c(1, -phi1, -phi2))
+
+# Affichage des racines et de leurs modules
+cat("Racines :", roots, "\n")
+cat("Modules des racines :", Mod(roots), "\n")
+```
+Les modules des racines sont tous supérieurs à 1, alors le processus est causal.
+
+- **Inversibilité** : Un processus ARMA est inversible si les racines du polynôme caractéristique associé au processus MA(q) sont toutes à l'extérieur du cercle unité. Pour le processus MA(1) donné, le polynôme est :
+   \[
+   1 + \theta z = 0
+   \]
+
+```{r}
+# Paramètres du processus
+theta <- 0.25
+
+# Calcul des racines de l'équation caractéristique
+roots <- polyroot(c(1, theta))
+
+# Affichage des racines et de leurs modules
+cat("Racines :", roots, "\n")
+cat("Modules des racines :", Mod(roots), "\n")
+```
+Le module de la racine est supérieur à 1, alors le processus est inversible.
+
+##### Simulons le processus \( X_t \) pour \( t = 1, \ldots, n \), avec \( n = 1000 \).  
+
+```{r}
+# Paramètres du processus
+phi1 <- -0.5
+phi2 <- 0.4
+theta <- 0.25
+n <- 1000  # Nombre d'observations
+
+# Génération du bruit blanc
+set.seed(123)  # Pour la reproductibilité
+epsilon <- rnorm(n)
+
+# Initialisation de la série
+Xt <- numeric(n)
+
+# Boucle pour générer le processus ARMA(2,1)
+for (t in 3:n) {
+  Xt[t] <- phi1 * Xt[t - 1] + phi2 * Xt[t - 2] + epsilon[t] + theta * epsilon[t - 1]
+}
+# Tracé de la série simulée
+plot(Xt, type = "l", main = "Processus ARMA(2,1) simulé", xlab = "Temps", ylab = expression(X[t]))
+```
+
+##### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle. 
+
+```{r}
+# Tracé des fonctions d’autocorrélation et d’autocorrélation partielle
+acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
+pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
+```
+
+
+### Comportements Observés
+
+- **ACF**: L'ACF décroît lentement et a des pics significatifs.
+
+- **PACF**: La PACF montre une coupure après le deuxième lag, indiquant la structure AR(2).
+
+
+##### Calculer la fonction d’autocovariance et la fonction d’autocorrélation. 
+
+```{r}
+# Calcul de la fonction d'autocovariance
+autocovariance <- function(X, lag) {
+  n <- length(X)
+  mean_X <- mean(X)
+  cov <- sum((X[1:(n - lag)] - mean_X) * (X[(1 + lag):n] - mean_X)) / (n - lag)
+  return(cov)
+}
+
+# Calcul des autocovariances jusqu'à lag 20
+autocovariances <- sapply(0:20, function(lag) autocovariance(Xt, lag))
+
+# Tracé des autocovariances
+plot(0:20, autocovariances, type = "h", main = "Autocovariance", xlab = "Lag", ylab = "Autocovariance")
+```
+
+L’observation de la fonction d’autocorrélation pour votre simulation correspond-elle au comportement théorique ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
