@@ -219,7 +219,7 @@ pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
 
 -   **ACF** : L'ACF montre une corrélation significative au lag 1, avec une valeur significative égale à la valeur absolue de $\theta = -0.9$. Les lags suivants sont proches de zéro.
 
--   **PACF** : La PACF coupe après le premier lag, montrant une corrélation significative seulement pour le premier lag, qui est négative. Les autres lags décroissent vers zero.
+-   **PACF** : La PACF coupe après le premier lag, montrant une corrélation significative seulement pour le premier lag, qui est négative car $\theta = -0.9$ est négative. Les autres lags décroissent vers zero.
 
 ##### Comparaison avec le comportement théorique
 
@@ -495,13 +495,13 @@ Un processus AR(2) est défini par l'équation suivante :
 
 $$
 X_t = \phi_1 X_{t-1} + \phi_2 X_{t-2} + \varepsilon_t, \quad t \in \mathbb{N^*}
-$$
-#### 7-) Avec \(\phi_1 = 1.2\) et \(\phi_2 = -0.35\)
+$$ \#### 7-) Avec $\phi_1 = 1.2$ et $\phi_2 = -0.35$
 
 Nous allons examiner la causalité de ce processus et simuler le processus pour analyser son comportement.
 
 ##### Vérification de la causalité
-Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique \(1 - \phi_1 z - \phi_2 z^2 = 0\) doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
+
+Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique $1 - \phi_1 z - \phi_2 z^2 = 0$ doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
 
 ##### Cherchons numériquement les racines avec R
 
@@ -522,7 +522,7 @@ Les modules des racines sont tous supérieurs à 1, alors le processus est causa
 
 ##### Simulation du processus et tracés
 
-On simule le processus pour \(t = 1, \ldots, n\) avec \(n = 1000\), puis on trace les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+On simule le processus pour $t = 1, \ldots, n$ avec $n = 1000$, puis on trace les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
 
 ```{r}
 set.seed(123)  # Pour la reproductibilité
@@ -551,8 +551,8 @@ pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
 
 ##### Comportements Observés
 
-1. **ACF** : L'ACF montre une décroissance progressive et oscillante. 
-2. **PACF** : La PACF montre des valeurs significatives pour les deux premiers lags et tend vers zéro ensuite, ce qui est typique pour un processus AR(2).
+1.  **ACF** : L'ACF montre une décroissance progressive et oscillante.
+2.  **PACF** : La PACF montre des valeurs significatives pour les deux premiers lags et tend vers zéro ensuite, ce qui est typique pour un processus AR(2).
 
 ##### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
 
@@ -569,12 +569,13 @@ acf(Xt, main = "Fonction d'autocorrélation empirique")
 
 En comparant avec les résultats théoriques du cours, on peut conclure si l’autocorrélation suit bien les caractéristiques d’un processus AR(2) causal.
 
-#### 8-) Avec \(\phi_1 = 0.5\) et \(\phi_2 = 0.24\)
+#### 8-) Avec $\phi_1 = 0.5$ et $\phi_2 = 0.24$
 
 Nous allons examiner la causalité de ce processus et simuler le processus pour analyser son comportement.
 
 ##### Vérification de la causalité
-Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique \(1 - \phi_1 z - \phi_2 z^2 = 0\) doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
+
+Pour que le processus AR(2) soit causal, les racines de l’équation caractéristique $1 - \phi_1 z - \phi_2 z^2 = 0$ doivent être en dehors du cercle unité. Cela implique que le module de chacune des racines doit être supérieur à 1.
 
 ##### Cherchons numériquement les racines avec R
 
@@ -590,11 +591,12 @@ roots <- polyroot(c(1, -phi1, -phi2))
 cat("Racines :", roots, "\n")
 cat("Modules des racines :", Mod(roots), "\n")
 ```
+
 Les modules des racines sont tous supérieurs à 1, alors le processus est causal.
 
 ##### Simulation du processus et tracés
 
-Nous simulons le processus pour \(t = 1, \ldots, n\) avec \(n = 1000\), puis nous traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+Nous simulons le processus pour $t = 1, \ldots, n$ avec $n = 1000$, puis nous traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
 
 ```{r}
 set.seed(123)  # Pour la reproductibilité
@@ -624,9 +626,9 @@ pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
 
 ##### Comportements Observés
 
--**ACF** : L'ACF montre une décroissance progressive.
+\-**ACF** : L'ACF montre une décroissance progressive.
 
--**PACF** : La PACF montre des valeurs significatives pour les deux premiers lags, ce qui est caractéristique d'un processus AR(2), puis tend vers zéro.
+\-**PACF** : La PACF montre des valeurs significatives pour les deux premiers lags, ce qui est caractéristique d'un processus AR(2), puis tend vers zéro.
 
 #### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
 
@@ -645,22 +647,22 @@ En comparant avec les résultats théoriques, nous vérifions si l'autocorrélat
 
 # $\textbf{2.4 Processus ARMA(p,q)}$
 
-Nous souhaitons illustrer le comportement des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus ARMA(p).  
-Nous allons maintenant simuler un processus ARMA(1,1) :  
+Nous souhaitons illustrer le comportement des fonctions d’autocorrélation et d’autocorrélation partielle pour les processus ARMA(p).\
+Nous allons maintenant simuler un processus ARMA(1,1) :\
 $$ X_t = \phi X_{t-1} + \varepsilon_t + \theta \varepsilon_{t-2}, \; t \in \mathbb{N^*}$$
 
-
-#### 9) Avec \(\phi = -0.5\) et \(\theta = 0.25\)
+#### 9) Avec $\phi = -0.5$ et $\theta = 0.25$
 
 Pour ce processus ARMA(1,1), nous allons vérifier sa causalité et son inversibilité, simuler la série temporelle, puis analyser ses propriétés.
 
 ##### Vérification de la causalité et de l’inversibilité
-- **Causalité** : Le processus ARMA(1,1) est causal si la valeur absolue de \(\phi\) est inférieure à 1, ce qui est le cas ici (\(|\phi| = 0.5 < 1\)). Ainsi, ce processus est causal.
-- **Inversibilité** : Le processus ARMA(1,1) est inversible si la valeur absolue de \(\theta\) est inférieure à 1, ce qui est également le cas ici (\(|\theta| = 0.25 < 1\)). Donc, ce processus est aussi inversible.
+
+-   **Causalité** : Le processus ARMA(1,1) est causal si la valeur absolue de $\phi$ est inférieure à 1, ce qui est le cas ici ($|\phi| = 0.5 < 1$). Ainsi, ce processus est causal.
+-   **Inversibilité** : Le processus ARMA(1,1) est inversible si la valeur absolue de $\theta$ est inférieure à 1, ce qui est également le cas ici ($|\theta| = 0.25 < 1$). Donc, ce processus est aussi inversible.
 
 ##### Simulation du Processus ARMA(1,1)
 
-Nous simulons le processus ARMA(1,1) pour \(t = 1, \ldots, n\) avec \(n = 1000\), et traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
+Nous simulons le processus ARMA(1,1) pour $t = 1, \ldots, n$ avec $n = 1000$, et traçons les fonctions d’autocorrélation (ACF) et d’autocorrélation partielle (PACF).
 
 ```{r}
 set.seed(123)  # Pour la reproductibilité
@@ -692,9 +694,9 @@ pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
 
 ##### Comportements Observés
 
-- **ACF** : L'ACF montre un pic au premier lag puis une décroissance progressive sur les autres tendant vers 0. Seule la valeur au premier lag est significative.
+-   **ACF** : L'ACF montre un pic au premier lag puis une décroissance progressive sur les autres tendant vers 0. Seule la valeur au premier lag est significative.
 
-- **PACF** : La PACF montre une coupure après le premier lag. Seul le lag 1 présente une corrélation significative.
+-   **PACF** : La PACF montre une coupure après le premier lag. Seul le lag 1 présente une corrélation significative.
 
 ##### Calcul et Interprétation de la Fonction d’Autocovariance et de l’ACF
 
@@ -709,22 +711,21 @@ cat("Fonction d'autocovariance empirique (jusqu'au lag 10) :", gamma_hat[1:10], 
 acf(Xt, main = "Fonction d'autocorrélation empirique")
 ```
 
-L'observation de la fonction d’autocorrélation pour cette simulation correspond au comportement théorique d'un processus ARMA(1,1) causal et inversible, avec un déclin modéré influencé par les valeurs de \(\phi\) et \(\theta\).
-
-
+L'observation de la fonction d’autocorrélation pour cette simulation correspond au comportement théorique d'un processus ARMA(1,1) causal et inversible, avec un déclin modéré influencé par les valeurs de $\phi$ et $\theta$.
 
 #### Processus ARMA(2,1)
-Nous allons maintenant simuler un processus ARMA(2,1) :  
+
+Nous allons maintenant simuler un processus ARMA(2,1) :\
 $$ X_t = \phi_1 X_{t-1} + \phi_2 X_{t-2} + \varepsilon_t + \theta \varepsilon_{t-1}, \; t \in \mathbb{N} $$
 
-#### 10) On choisit \( \phi_1 = -0.5 \), \( \phi_2 = 0.4 \) et \( \theta = 0.25 \).  
+#### 10) On choisit $\phi_1 = -0.5$, $\phi_2 = 0.4$ et $\theta = 0.25$.
 
 ##### Vérification de la causalité et de l’inversibilité
-- **Causalité** : Un processus ARMA est causal si les racines du polynôme caractéristique associé au processus AR(p) sont toutes à l'extérieur du cercle unité dans le plan complexe. Pour le processus ARMA(2,1) donné, le polynôme est :
-   \[
-   1 - \phi_1 z - \phi_2 z^2 = 0
-   \]
-   
+
+-   **Causalité** : Un processus ARMA est causal si les racines du polynôme caractéristique associé au processus AR(p) sont toutes à l'extérieur du cercle unité dans le plan complexe. Pour le processus ARMA(2,1) donné, le polynôme est : $$
+     1 - \phi_1 z - \phi_2 z^2 = 0
+     $$
+
 ##### Cherchons numériquement les racines avec R
 
 ```{r}
@@ -739,12 +740,12 @@ roots <- polyroot(c(1, -phi1, -phi2))
 cat("Racines :", roots, "\n")
 cat("Modules des racines :", Mod(roots), "\n")
 ```
+
 Les modules des racines sont tous supérieurs à 1, alors le processus est causal.
 
-- **Inversibilité** : Un processus ARMA est inversible si les racines du polynôme caractéristique associé au processus MA(q) sont toutes à l'extérieur du cercle unité. Pour le processus MA(1) donné, le polynôme est :
-   \[
-   1 + \theta z = 0
-   \]
+-   **Inversibilité** : Un processus ARMA est inversible si les racines du polynôme caractéristique associé au processus MA(q) sont toutes à l'extérieur du cercle unité. Pour le processus MA(1) donné, le polynôme est : $$
+     1 + \theta z = 0
+     $$
 
 ```{r}
 # Paramètres du processus
@@ -757,9 +758,10 @@ roots <- polyroot(c(1, theta))
 cat("Racines :", roots, "\n")
 cat("Modules des racines :", Mod(roots), "\n")
 ```
+
 Le module de la racine est supérieur à 1, alors le processus est inversible.
 
-##### Simulons le processus \( X_t \) pour \( t = 1, \ldots, n \), avec \( n = 1000 \).  
+##### Simulons le processus $X_t$ pour $t = 1, \ldots, n$, avec $n = 1000$.
 
 ```{r}
 # Paramètres du processus
@@ -783,7 +785,7 @@ for (t in 3:n) {
 plot(Xt, type = "l", main = "Processus ARMA(2,1) simulé", xlab = "Temps", ylab = expression(X[t]))
 ```
 
-##### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle. 
+##### Traçons les fonctions d’autocorrélation et d’autocorrélation partielle.
 
 ```{r}
 # Tracé des fonctions d’autocorrélation et d’autocorrélation partielle
@@ -791,59 +793,38 @@ acf(Xt, main = "Fonction d'Autocorrélation (ACF)")
 pacf(Xt, main = "Fonction d'Autocorrélation Partielle (PACF)")
 ```
 
-
 ### Comportements Observés
 
-- **ACF**: L'ACF décroît lentement et a des pics significatifs.
+-   **ACF**: L'ACF décroît lentement et a des pics significatifs.
 
-- **PACF**: La PACF montre une coupure après le deuxième lag, indiquant la structure AR(2).
+-   **PACF**: La PACF montre une coupure après le deuxième lag, indiquant la structure AR(2).
 
+##### Calculer la fonction d’autocovariance et la fonction d’autocorrélation.
 
-##### Calculer la fonction d’autocovariance et la fonction d’autocorrélation. 
+**1. Calcul de la fonction d'autocovariance** $\phi_k$
 
-```{r}
-# Calcul de la fonction d'autocovariance
-autocovariance <- function(X, lag) {
-  n <- length(X)
-  mean_X <- mean(X)
-  cov <- sum((X[1:(n - lag)] - mean_X) * (X[(1 + lag):n] - mean_X)) / (n - lag)
-  return(cov)
-}
+Pour obtenir les valeurs des premiers $\gamma_k$ (en supposant $k = 0, 1, 2$), on doit résoudre les équations suivantes :
 
-# Calcul des autocovariances jusqu'à lag 20
-autocovariances <- sapply(0:20, function(lag) autocovariance(Xt, lag))
+-   $$
+    \gamma_0 = \dfrac{\sigma_{\varepsilon}^2 (1 + \theta^2)}{1 - \phi_1^2 - \phi_2^2 - 2 \phi_1 \phi_2}
+    $$
 
-# Tracé des autocovariances
-plot(0:20, autocovariances, type = "h", main = "Autocovariance", xlab = "Lag", ylab = "Autocovariance")
-```
+-   $$
+    \gamma_1 = \dfrac{\phi_1 \gamma_0 + \theta_1 \sigma_{\varepsilon}^2}{1 - \phi_2}
+    $$
 
-L’observation de la fonction d’autocorrélation pour votre simulation correspond-elle au comportement théorique ?
+-   $$ \gamma_2 = \phi_1 \gamma_1 + \phi_2 \gamma_0 $$
 
+Par récurrence, on a : $\gamma_k = \phi_1 \gamma_{k-1} + \phi_2 \gamma_{k-2}$ pour tout $k >3$.
 
+**2. Calcul de la Fonction d'Autocorrélation** $\rho_k$
 
+##### Comportement de l'ACF théorique
 
+Dans notre modèle autorégressif d'ordre 2, l'ACF exhibera différents comportements en fonction des valeurs des paramètres $\phi_1$ et $\phi_2$ :
 
+-   **Oscillatoire** si les racines associées à l'équation caractéristique du modèle sont complexes.
 
+-   **Exponentiellement décroissant** si les racines sont réelles et les valeurs propres de $\phi_1$ et $\phi_2$ sont inférieures à 1 en module.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+D'où le comportement observé correspond bien au comportement théorique.
